@@ -1595,7 +1595,7 @@ imageData HitOrMiss(imageData img, int numI, int filterI[][8], int numII, int fi
             }
         }
         //show isolated dots
-        cout<<"Isolated dots number is: "<<singleDots<<endl;
+        //cout<<"Isolated dots number is: "<<singleDots<<endl;
         return outputG;
     }
 }
@@ -1614,7 +1614,7 @@ imageData Morphing(imageData img, int type, int inverse){
     //copy the image data for processing
     imageData copy=img.copy();
     //output image
-    imageData outputG=copy.createData();
+    imageData outputG;
     //normalize values to 0 and 1
     for (int i=0; i<copy._width; i++) {
         for (int j=0; j<copy._length; j++) {
@@ -1641,7 +1641,7 @@ imageData Morphing(imageData img, int type, int inverse){
         case 2:
         {
             //show current filter information
-            cout<<"Conducting thinning hit or miss filters..."<<endl;
+            //cout<<"Conducting thinning hit or miss filters..."<<endl;
             //thinning
             outputG=HitOrMiss(copy, TNUM, THINING, STNUMII, STII);
             break;
@@ -1672,7 +1672,7 @@ imageData Morphing(imageData img, int type, int inverse){
  * Output: hole-filled imageData.
  *************************************************************************/
 
-imageData HoleFilling(imageData img){
+imageData HoleFilling(imageData img,bool inverse){
     imageData copied=img.copy();
     //imageData outputG=img.copy();
     //find initial fill position//
@@ -1685,15 +1685,15 @@ imageData HoleFilling(imageData img){
     int fillNum=0;
     for (int i=2; i<copied._width/2; i++) {
         for (int j=2; j<copied._length/2; j++) {
-            if (copied._dataPtr[i][j][0]==0 && copied._dataPtr[i][j-2][0]==255 && copied._dataPtr[i-2][j][0]==255) {
-                copied._dataPtr[i][j][0]=255;
+            if (copied._dataPtr[i][j][0]==255*inverse && copied._dataPtr[i][j-2][0]==255*(1-inverse) && copied._dataPtr[i-2][j][0]==255*(1-inverse)) {
+                copied._dataPtr[i][j][0]=255*(1-inverse);
                 fillNum++;
             }
             
         }
         for (int j=copied._length/2; j<copied._length-2; j++) {
-            if (copied._dataPtr[i][j][0]==0 && copied._dataPtr[i][j+2][0]==255 && copied._dataPtr[i-2][j][0]==255) {
-                copied._dataPtr[i][j][0]=255;
+            if (copied._dataPtr[i][j][0]==255*inverse && copied._dataPtr[i][j+2][0]==255*(1-inverse) && copied._dataPtr[i-2][j][0]==255*(1-inverse)) {
+                copied._dataPtr[i][j][0]=255*(1-inverse);
                 fillNum++;
             }
             
@@ -1701,15 +1701,15 @@ imageData HoleFilling(imageData img){
 
     }for (int i=copied._width/2; i<copied._width-2; i++) {
         for (int j=2; j<copied._length/2; j++) {
-            if (copied._dataPtr[i][j][0]==0 && copied._dataPtr[i][j-2][0]==255 && copied._dataPtr[i+2][j][0]==255) {
-                copied._dataPtr[i][j][0]=255;
+            if (copied._dataPtr[i][j][0]==255*inverse && copied._dataPtr[i][j-2][0]==255*(1-inverse) && copied._dataPtr[i+2][j][0]==255*(1-inverse)) {
+                copied._dataPtr[i][j][0]=255*(1-inverse);
                 fillNum++;
             }
             
         }
         for (int j=copied._length/2; j<copied._length-2; j++) {
-            if (copied._dataPtr[i][j][0]==0 && copied._dataPtr[i][j+2][0]==255 && copied._dataPtr[i+2][j][0]==255) {
-                copied._dataPtr[i][j][0]=255;
+            if (copied._dataPtr[i][j][0]==255*inverse && copied._dataPtr[i][j+2][0]==255*(1-inverse) && copied._dataPtr[i+2][j][0]==255*(1-inverse)) {
+                copied._dataPtr[i][j][0]=255*(1-inverse);
                 fillNum++;
             }
             
@@ -1717,7 +1717,7 @@ imageData HoleFilling(imageData img){
         
     }
     if (fillNum!=0) {
-        return HoleFilling(copied);
+        return HoleFilling(copied,inverse);
     }
     else{
         return copied;
@@ -1993,8 +1993,8 @@ int main(int argc, const char * argv[]) {
                 ShowImg("shrinked horse", Morphing(horse1,1,0));
                 ShowImg("Thined and skeletonized horse", Morphing(Morphing(horse1,2,0),3,0));
                 //note boundary smoothing is embedded
-                ShowImg("pre-processed horse", HoleFilling(horse1) );
-                ShowImg("Thined and skeletonized horse with pre-process", Morphing(Morphing(HoleFilling(horse1),2,0),3,0));
+                ShowImg("pre-processed horse", HoleFilling(horse1,0) );
+                ShowImg("Thined and skeletonized horse with pre-process", Morphing(Morphing(HoleFilling(horse1,0),2,0),3,0));
 
 
 

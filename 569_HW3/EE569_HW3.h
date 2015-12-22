@@ -163,11 +163,11 @@ imageData Morphing(imageData img, int type, int inverse);
  * HoleFilling()
  * Function: This function reads the image data and apply hole-filling
              filter to the image.
- * Input: ImageData; shrinked holes locations
+ * Input: ImageData; shrinked holes locations; if inverse=1 ,reverse 0&1
  * Output: hole-filled imageData./
  *************************************************************************/
 
-imageData HoleFilling(imageData img);
+imageData HoleFilling(imageData img,bool inverse);
 
 /*************************************************************************
  * BoundarySmooth()

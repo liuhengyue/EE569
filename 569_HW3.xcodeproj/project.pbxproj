@@ -297,7 +297,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = /usr/local/include;
-				LIBRARY_SEARCH_PATHS = "/usr/local/lib/\"libopencv 2.4.11\"";
+				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib/libopencv 2.4.11\"";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -306,7 +306,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = /usr/local/include;
-				LIBRARY_SEARCH_PATHS = "/usr/local/lib/\"libopencv 2.4.11\"";
+				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib/libopencv 2.4.11\"";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
