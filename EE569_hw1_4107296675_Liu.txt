@@ -1,0 +1,667 @@
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function count = writeraw(G, filename, chann)
+%writeraw - write RAW format grey scale or RGB image file 
+% Usage :	writeraw(G, filename, chann)
+% G:		input image matrix
+% filename: file name of the file to write to disk
+% count:	return value, the elements written to file
+
+	disp([' Write image data to'  filename ' ...']);
+
+	% Get file ID
+	fid = fopen(filename,'wb');
+
+	% Check if file exists
+	if (fid == -1)
+		error('can not open output image filem press CTRL-C to exit \n');
+		pause
+	end
+
+	if chann==1
+        % Transpose matrix to write file properly
+        G = G'; 
+
+        % Write and close file
+        count = fwrite(fid,G, 'uchar');
+        fclose(fid);
+
+        % Transpose again to restore matrix
+        G = G';
+    end
+    if chann==3 %if RGB image
+        for chann_index=1:chann
+            sub_G=G(:,:,chann_index);
+            G(:,:,chann_index)=sub_G';
+        end
+                % Write and close file
+        count = fwrite(fid,G, 'uchar');
+        fclose(fid);
+
+        % Transpose again to restore matrix
+        for chann_index=1:chann
+            G(:,:,chann_index)=G(:,:,chann_index)';
+        end
+    end
+end %function
+
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function G = readraw_(filename,width,length,chann)
+%readraw_ - read RAW format grey scale or RGB image of any size into matrix G
+% Usage:	G = readraw_(filename,width,length,chann)
+%Warning: width and length are not required. Channels number need to be
+%right,though error module is designed.
+
+	disp(['	Retrieving Image ' filename ' ...']);
+
+	% Get file ID for file
+	fid=fopen(filename,'rb');
+
+	% Check if file exists
+	if (fid == -1)
+	  	error('can not open input image file press CTRL-C to exit \n');
+	  	pause
+    end
+    % Check if the channels number is right
+    if uint8(chann)~=1 && uint8(chann)~=3
+        error('channels number wrong press CTRL-C to exit \n');
+	  	pause
+    end
+	% Get all the pixels from the image
+	pixel = fread(fid, inf, 'uchar');
+
+	% Close file
+	fclose(fid);
+
+	% Calculate the size of image
+	[Y X]=size(pixel);
+	Size=(Y*X);
+    %Check if the image channels and image mode are match
+
+    %The pixel is N-D array, so it is necessary to find a proper image
+    %size(Y*X) if the dimensions are not given; here use the function mod to find the value can be divided by
+    %Size.
+    if width==0 || length==0
+        N=ceil(sqrt(Size/chann));
+        while mod(Size,N)>0
+            N=N+1;
+        end
+    length=N;
+    width=Size/chann/N;
+    end
+	% Construct matrix
+    G = zeros(length,width,chann);
+	% Write pixels into matrix
+    try
+        for chann_index=1:chann
+            sub_G=zeros(width,length);
+            sub_G(1:length*width)=pixel(chann_index:chann:Size);
+            % Assign channels and transpose matrix, to orient it properly
+            % since array stores in columns
+            G(1:length,1:width,chann_index)=sub_G';
+
+        end
+
+    catch
+        error('channels number mismatch with the image color level press CTRL-C to exit \n');
+	  	pause
+    end
+
+end %function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function resizedimg=bilinear_interpolation(imgmatrix,N)
+%bilinear_interpolation - read a color image square matrix, and do the
+%bilinear interpolation based on the desired image size N*N
+% Usage:	 resizedimg=bilinear_interpolation(imgmatrix,N)
+n=length(imgmatrix);%get the original size of n*n matrix
+resizedimg=zeros(N,N,3);
+    for row=1:N
+        for col=1:N
+            %n/N is the shrink ratio from the desied image to the original
+            %one, (u, v) are the shrinked coordinates, (x, y) are the
+            %round-off of (u, v), a and b are the weight values.
+            u=row*n/N; v=col*n/N; x=floor(u); y=floor(v);a=u-x;b=v-y;
+            % The round-off values may be out of boundries, so make them in
+            % the right range n.
+            if x<1
+                x=1;
+            elseif x>n-1
+                x=n-1;
+            end
+            if y<1
+                y=1;
+            elseif y>n-1
+                y=n-1;
+            end
+            %Bilinear Interpolation, F(row,col) is decided by F(x,y),F(x,y+1),F(x+1,y) and F(x+1,y+1) 
+            for chann=1:3
+                resizedimg(row,col,chann)=(1-a)*(1-b)*imgmatrix(x,y,chann)+b*(1-a)*imgmatrix(x,y+1,chann)+a*(1-b)*imgmatrix(x+1,y,chann)+a*b*imgmatrix(x+1,y+1,chann);
+                
+            end
+        end
+    end
+    resizedimg=uint8(resizedimg);%The matrix's precison is double, change it to uint8 to display.
+    imshow(resizedimg);
+    end %function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function clearimg=bilinear_demosaic(imgmatrix)
+%bilinear_demosaic - read a grey scale image matrix, 
+%and do the bilinear demosaicing and create a new image matrix
+% Usage:	 clearimg=bilinear_demosaic(imgmatrix)
+[Y, X]=size(imgmatrix);%get the original size of Y*X matrix
+%Extra 2 rows and 2 columns are for dealing with the boundary problem.
+%Reason: Local averaging at most 4 pixels, so 2 more rows and columns are enough.
+%copy the pixels and do the mirror reflection to create a temporary matrix.
+tempimg=zeros(Y+2,X+2);
+tempimg(1,1)=imgmatrix(2,2);
+tempimg(1,X+2)=imgmatrix(2,X-1);
+tempimg(Y+2,1)=imgmatrix(Y-1,2);
+tempimg(Y+2,X+2)=imgmatrix(Y-1,X-1);
+tempimg(1,2:X+1)=imgmatrix(2,1:X);
+tempimg(2:Y+1,1)=imgmatrix(1:Y,2);
+tempimg(Y+2,2:X+1)=imgmatrix(Y-1,1:X);
+tempimg(2:Y+1,X+2)=imgmatrix(1:Y,X-1);
+tempimg(2:Y+1,2:X+1)=imgmatrix(1:Y,1:X);
+clearimg=zeros(Y,X,3);
+%Tempimg coordinates(Y,X) are 1 bigger than clearimg, so adjust the coordinates
+%carefully.
+%Red pixel estimate G and B
+    for row=1:2:Y
+        for col=1:2:X
+            clearimg(row,col,1)=imgmatrix(row,col);
+            clearimg(row,col,2)=(tempimg(row,col+1)+tempimg(row+1,col)+tempimg(row+2,col+1)+tempimg(row+1,col+2))/4;
+            clearimg(row,col,3)=(tempimg(row,col)+tempimg(row+2,col)+tempimg(row,col+2)+tempimg(row+2,col+2))/4;
+        end
+    end
+%Green pixel estimate R and B
+%Green pixel at red rows
+    for row=1:2:Y
+        for col=2:2:X
+            clearimg(row,col,1)=(tempimg(row+1,col)+tempimg(row+1,col+2))/2;
+            clearimg(row,col,2)=imgmatrix(row,col);
+            clearimg(row,col,3)=(tempimg(row,col+1)+tempimg(row+2,col+1))/2;
+        end
+    end
+%Green pixel at blue rows
+    for row=2:2:Y
+        for col=1:2:X
+            clearimg(row,col,1)=(tempimg(row,col+1)+tempimg(row+2,col+1))/2;
+            clearimg(row,col,2)=imgmatrix(row,col);
+            clearimg(row,col,3)=(tempimg(row+1,col)+tempimg(row+1,col+2))/2;
+    end
+%Blue pixel estimate R and G
+    for row=2:2:Y
+        for col=2:2:X
+            clearimg(row,col,1)=(tempimg(row,col)+tempimg(row+2,col)+tempimg(row,col+2)+tempimg(row+2,col+2))/4;
+            clearimg(row,col,2)=(tempimg(row,col+1)+tempimg(row+1,col)+tempimg(row+2,col+1)+tempimg(row+1,col+2))/4;
+            clearimg(row,col,3)=imgmatrix(row,col);
+        end
+    end
+    
+    %imshow(uint8(clearimg));
+    end %function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function clearimg=MHC_demosaic(imgmatrix)
+%MHC_demosaic - read a grey scale image matrix, and do the
+%MHC demosaicing and create a new image matrix
+% Usage:	 clearimg=MHC_demosaic(imgmatrix)
+
+%Extra 4 rows and 4 columns are for dealing with the boundary problem.
+%Reason: At most 9-point Laplacian, so 4 more rows and columns are enough.
+%copy the pixels and do the mirror reflection to create a temporary matrix.
+%Define a function mirror() to add extra 2 rows and columns, to add 4
+%ones, just run the function 2 times.
+% Usage:	 temimg=mirror(imgmatrix)
+    function tempimg=mirror(imgmatrix)
+        [Y X]=size(imgmatrix);%get the original size of Y*X matrix
+        tempimg=zeros(Y+2,X+2);
+        tempimg(1,1)=imgmatrix(2,2);
+        tempimg(1,X+2)=imgmatrix(2,X-1);
+        tempimg(Y+2,1)=imgmatrix(Y-1,2);
+        tempimg(Y+2,X+2)=imgmatrix(Y-1,X-1);
+        tempimg(1,2:X+1)=imgmatrix(2,1:X);
+        tempimg(2:Y+1,1)=imgmatrix(1:Y,2);
+        tempimg(Y+2,2:X+1)=imgmatrix(Y-1,1:X);
+        tempimg(2:Y+1,X+2)=imgmatrix(1:Y,X-1);
+        tempimg(2:Y+1,2:X+1)=imgmatrix(1:Y,1:X);
+    end
+    
+midmatrix=bilinear_demosaic(imgmatrix);%Bilinear demosaicing results
+extendedmatrix=mirror(mirror(imgmatrix));%This matrix is for MHC demosaicing
+[Y_ X_]=size(imgmatrix);%get the original size of Y*X matrix
+clearimg=zeros(Y_,X_,3);%Store the bilinear demosaicing results
+%Extended matrix coordinates(i,j) are 2 bigger than clearimg, so adjust the coordinates
+%carefully.
+% MHC algorithm: G(i,j)=Gbl(i,j)+factor*delta(i,j)
+%Gbl(i,j) is the bilinear demosaicing result, factors for R G B are
+%alpha=1/2, beta=5/8, gamma=3/4.
+%Delta(i,j) is the Laplacian result of neighbor pixels.
+%Define default weight factors
+alpha=1/2;
+beta=5/8;
+gamma=3/4;
+
+for row=1:2:Y_
+    for col=1:2:X_
+        clearimg(row,col,1)=midmatrix(row,col,1);
+        %G at R locations
+        clearimg(row,col,2)=midmatrix(row,col,2)+(1/4)*alpha*(4*extendedmatrix(row+2,col+2)-extendedmatrix(row,col+2)-extendedmatrix(row+4,col+2)-extendedmatrix(row+2,col)-extendedmatrix(row+2,col+4));
+        %B at R locations (R row, R column)
+        clearimg(row,col,3)=midmatrix(row,col,3)+(1/4)*alpha*(6*extendedmatrix(row+2,col+2)-(3/2)*extendedmatrix(row,col+2)-(3/2)*extendedmatrix(row+4,col+2)-(3/2)*extendedmatrix(row+2,col)-(3/2)*extendedmatrix(row+2,col+4));
+    end
+end
+
+for row=2:2:Y_
+    for col=2:2:X_
+        clearimg(row,col,3)=midmatrix(row,col,3);
+        %G at B locations
+        clearimg(row,col,2)=midmatrix(row,col,2)+(1/4)*gamma*(4*extendedmatrix(row+2,col+2)-extendedmatrix(row,col+2)-extendedmatrix(row+4,col+2)-extendedmatrix(row+2,col)-extendedmatrix(row+2,col+4));
+        %R at B locations (B row, B column)
+        clearimg(row,col,1)=midmatrix(row,col,1)+(1/4)*gamma*(6*extendedmatrix(row+2,col+2)-(3/2)*extendedmatrix(row,col+2)-(3/2)*extendedmatrix(row+4,col+2)-(3/2)*extendedmatrix(row+2,col)-(3/2)*extendedmatrix(row+2,col+4));
+
+    end
+end
+
+for row=1:2:Y_
+    for col=2:2:X_
+        clearimg(row,col,2)=midmatrix(row,col,2);
+        %R at G locations (R row, B column)
+        clearimg(row,col,1)=midmatrix(row,col,1)+(1/8)*beta*(5*extendedmatrix(row+2,col+2)+extendedmatrix(row,col+2)/2+extendedmatrix(row+4,col+2)/2-extendedmatrix(row+2,col)-extendedmatrix(row+2,col+4)-extendedmatrix(row+1,col+1)-extendedmatrix(row+1,col+3)-extendedmatrix(row+3,col+1)-extendedmatrix(row+3,col+3));
+        %B at G locations (R row, B column)
+        clearimg(row,col,3)=midmatrix(row,col,3)+(1/8)*beta*(5*extendedmatrix(row+2,col+2)-extendedmatrix(row,col+2)-extendedmatrix(row+4,col+2)+extendedmatrix(row+2,col)/2+extendedmatrix(row+2,col+4)/2-extendedmatrix(row+1,col+1)-extendedmatrix(row+1,col+3)-extendedmatrix(row+3,col+1)-extendedmatrix(row+3,col+3));
+    end
+end
+
+for row=2:2:Y_
+    for col=1:2:X_
+        clearimg(row,col,2)=midmatrix(row,col,2);
+        %R at G locations (B row, R column)
+        clearimg(row,col,1)=midmatrix(row,col,1)+(1/8)*beta*(5*extendedmatrix(row+2,col+2)-extendedmatrix(row,col+2)-extendedmatrix(row+4,col+2)+extendedmatrix(row+2,col)/2+extendedmatrix(row+2,col+4)/2-extendedmatrix(row+1,col+1)-extendedmatrix(row+1,col+3)-extendedmatrix(row+3,col+1)-extendedmatrix(row+3,col+3));
+        %B at G locations (B row, R column)
+        clearimg(row,col,3)=midmatrix(row,col,3)+(1/8)*beta*(5*extendedmatrix(row+2,col+2)+extendedmatrix(row,col+2)/2+extendedmatrix(row+4,col+2)/2-extendedmatrix(row+2,col)-extendedmatrix(row+2,col+4)-extendedmatrix(row+1,col+1)-extendedmatrix(row+1,col+3)-extendedmatrix(row+3,col+1)-extendedmatrix(row+3,col+3));    
+    end
+end
+
+
+    %imshow(uint8(clearimg));
+
+    end %function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function intensity_values=histogram_(imgmatrix)
+%histogram_ - Read the image matrix and plot the histograms of three
+%channels; return the intensity value array.
+%Usage: hist=histogram_(imgmatrix)
+%Get the matrix size
+[Y,X,chann]=size(imgmatrix);
+%This matrix is for recording intensity values of each level
+%Find the value for each pixel, and add one at the corresponding location of this matrix
+intensity_values=zeros(1,256,chann);
+for chann_index=1:chann
+    for row=1:Y
+        for col=1:X
+            %imgmatrix(row,col,chann_index) should be in 0-255, so add 1 to
+            %adjust the matrix indices.
+            intensity_values(1,imgmatrix(row,col,chann_index)+1,chann_index)=intensity_values(1,imgmatrix(row,col,chann_index)+1,chann_index)+1;
+        end
+    end
+end
+plot(0:255,intensity_values(:,:,1),'r',0:255,intensity_values(:,:,2),'g',0:255,intensity_values(:,:,3),'b');axis([0 255 0 inf]);legend('R','G','B');
+end
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function [enhancedimg, transfer_function]=tf_histogram_equalization(imgmatrix,intensity_values)
+%tf_histogram_equalization - Read the image matrix and the results of
+%histogram_, do the transfer-function-based histogram equalization to the
+%image, return the enhanced image and transfer functions.
+%Usage: [enhancedimg, transfer_function]=tf_histogram_equalization(imgmatrix,intensity_values)
+%Get the matrix size
+[Y,X,chann]=size(imgmatrix);
+%Total numbers of values in one channel
+Size=Y*X;
+%Construct a transfer function
+transfer_function=zeros(1,256,chann);
+%Construct a enhanced image matrix
+enhancedimg=zeros(Y,X,chann);
+%Calculate the cumulative distribution function of the histogram
+for chann_index=1:chann
+    for level=1:256%find the transfer value for each level
+        for i=1:level 
+            transfer_function(1,level,chann_index)=transfer_function(1,level,chann_index)+intensity_values(1,i,chann_index);
+        end
+    end
+    %normalize the transfer_function and coordinates 0-255 to 0-255
+    transfer_function(1,:,chann_index)=floor(256*transfer_function(1,:,chann_index)/Size);
+    
+end
+%Find the corresponding pixels and change their values to tranferred ones
+for chann_index=1:chann
+    for value=0:255
+        for row=1:Y
+            for col=1:X
+                if imgmatrix(row,col,chann_index)==value
+                    enhancedimg(row,col,chann_index)=transfer_function(1,value,chann_index);
+                end
+            end
+        end
+    end
+end
+%Plot the transfer functions of three channels
+plot(0:255,transfer_function(:,:,1),'r',0:255,transfer_function(:,:,2),'g',0:255,transfer_function(:,:,3),'b');axis([0 255 0 255]);legend('R','G','B');
+end%function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function [enhancedimg]=cp_histogram_equalization(imgmatrix)
+%cp_histogram_equalization - Read the image matrix, do the cumulative-histogram-based histogram equalization to the
+%image, return the enhanced image.
+%Usage: [enhancedimg, transfer_function]=cp_histogram_equalization(imgmatrix,intensity_values)
+%Get the matrix size
+[Y,X,chann]=size(imgmatrix);
+%Total numbers of values in one channel
+Size=Y*X;
+%Step is for chopping the array into equal lengths
+step=floor(Size/256);
+%Construct a enhanced image matrix
+enhancedimg=zeros(Y,X,chann);
+%Construct an array for sorting the pixel values
+img_array=zeros(1,Y*X,chann);
+sorted_array=zeros(1,Y*X,chann);
+for chann_index=1:chann
+    for i=2:Size+1
+        %Change 2d matrix to 1d array
+        img_array(1,i-1,chann_index)=imgmatrix(ceil((i-1)/X),mod(i-2,X)+1,chann_index);
+    end
+    %Use sort() function to sort the pixels and record the coordinates in
+    %array location.
+    [sorted_array(1,:,chann_index), location]=sort(img_array(1,:,chann_index));
+    %For each level, assign step number of pixels to this level, and the
+    %equal durations are like 1:step, 1+step:2step, ...
+    for level=0:255
+        for value=level*step+1:(level+1)*step
+            %Change the intesity values
+            sorted_array(1,value,chann_index)=level;
+        end
+    end
+    for i=1:Size
+        %Recover the image array from value-changed sorted value array.
+        img_array(1,location(1,i),chann_index)=sorted_array(1,i,chann_index);
+    end
+    %Recover the imgmatrix
+    sub_channel=zeros(X,Y);
+    sub_channel(1:Size)=img_array(1,1:Size,chann_index);
+    enhancedimg(:,:,chann_index)=sub_channel';
+    
+end
+
+end%function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function [I_1]=oil_paint(imgmatrix,value_num)
+%oil_paint - Read the image matrix, do the oil paint effect to the
+%image, return the enhanced image. value_num is the quantization level
+%Usage: [I_1]=oil_paint(imgmatrix,value_num)
+%Get the matrix size
+[Y,X,chann]=size(imgmatrix);
+%Total numbers of values in one channel
+Size=Y*X;
+% value_num is equal to quantization level, 
+%Step is for chopping the array into equal lengths, having 4 quantization levels
+%means all pixels are only in 4 values.
+step=floor(Size/value_num);
+%Construct an array to store quantized colors
+quantized_color=zeros(1,value_num,chann);
+%Construct an array to store quantized thresholds
+thresholds=zeros(1,value_num,chann);
+%Construct an quantized image matrix
+I_1=zeros(Y,X,chann);
+%Construct a transfer function
+transfer_function=zeros(1,256,chann);
+%Get the histogram of the original image
+intensity_values=histogram_(imgmatrix);
+%Calculate the cumulative distribution function of the histogram
+for chann_index=1:chann
+    for level=1:256%find the transfer value for each level
+        for i=1:level 
+            transfer_function(1,level,chann_index)=transfer_function(1,level,chann_index)+intensity_values(1,i,chann_index);
+        end
+    end
+    for quantize=1:value_num
+        diff=Size;
+        threshold=0;
+        for level=1:256
+            %Group four bins of pixel values
+            if abs(transfer_function(1,level,chann_index)- Size/(value_num-quantize+1)) <diff
+                diff=abs(transfer_function(1,level,chann_index)- Size/(value_num-quantize+1));
+                threshold=level-1;%This is the threshold value for first 1/4 pixels
+            end
+        end
+        thresholds(1,quantize,chann_index)=threshold;
+        quantized_color(1,quantize,chann_index)=256*quantize/value_num-1;
+    end
+                
+end
+
+%Construct an array for sorting the pixel values
+img_array=zeros(1,Y*X,chann);
+sorted_array=zeros(1,Y*X,chann);
+average_color=zeros(1,value_num,chann);
+n=zeros(1,4);
+for chann_index=1:chann
+    for i=2:Size+1
+        %Change 2d matrix to 1d array
+        img_array(1,i-1,chann_index)=imgmatrix(ceil((i-1)/X),mod(i-2,X)+1,chann_index);
+    end
+    %Use sort() function to sort the pixels and record the coordinates in
+    %array location.
+    [sorted_array(1,:,chann_index), location]=sort(img_array(1,:,chann_index));
+    %Find the average color of four bins.
+ 
+    for value=1:Size
+        %Change the intesity values
+        if  sorted_array(1,value,chann_index) <= thresholds(1,1,chann_index)
+            average_color(1,1,chann_index)=average_color(1,1,chann_index)+sorted_array(1,value,chann_index);
+            n(1,1)=n(1,1)+1;
+            %sorted_array(1,value,chann_index)=quantized_color(1,level+1,chann_index);
+        elseif thresholds(1,1,chann_index) < sorted_array(1,value,chann_index) <= thresholds(1,2,chann_index)
+            average_color(1,2,chann_index)=average_color(1,2,chann_index)+sorted_array(1,value,chann_index);
+            n(1,2)=n(1,2)+1;
+        elseif thresholds(1,2,chann_index) < sorted_array(1,value,chann_index) <= thresholds(1,3,chann_index)
+            average_color(1,3,chann_index)=average_color(1,3,chann_index)+sorted_array(1,value,chann_index);
+            n(1,3)=n(1,3)+1;
+        elseif thresholds(1,3,chann_index) < sorted_array(1,value,chann_index) <= thresholds(1,4,chann_index)
+            average_color(1,4,chann_index)=average_color(1,4,chann_index)+sorted_array(1,value,chann_index);
+            n(1,1)=n(1,4)+1;
+        else
+            error('calculate average color wrong');
+        end
+
+    end
+    for i=1:4
+        average_color(1,i,chann_index)=average_color(1,i,chann_index)/n(1,i);
+    end
+
+% Change the intensity values
+    for value=1:Size
+        %Change the intesity values
+        if  sorted_array(1,value,chann_index) <= thresholds(1,1,chann_index)
+            sorted_array(1,value,chann_index)=average_color(1,1,chann_index);
+        elseif thresholds(1,1,chann_index) < sorted_array(1,value,chann_index) <= thresholds(1,2,chann_index)
+            sorted_array(1,value,chann_index)=average_color(1,2,chann_index);
+        elseif thresholds(1,2,chann_index) < sorted_array(1,value,chann_index) <= thresholds(1,3,chann_index)
+            sorted_array(1,value,chann_index)=average_color(1,3,chann_index);
+        else
+            sorted_array(1,value,chann_index)=average_color(1,4,chann_index);
+        end
+
+    end
+    for i=1:Size
+        %Recover the image array from value-changed sorted value array.
+        img_array(1,location(1,i),chann_index)=sorted_array(1,i,chann_index);
+    end
+    %Recover the imgmatrix
+    sub_channel=zeros(X,Y);
+    sub_channel(1:Size)=img_array(1,1:Size,chann_index);
+    I_1(:,:,chann_index)=sub_channel';
+    
+end
+disp(average_color);
+end%function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function filteredImg=medianFilter(imgMatrix)
+%medianFilter- read a grey scale image matrix, and do the 9-point median
+%filter to the image.
+% Usage:	 filteredImg=medianFilter(imgMatrix)
+%Define a function mirror() to add extra 2 rows and columns (for grey scale image), to add 4
+%ones, just run the function 2 times.
+% Usage:	 temimg=mirror(imgmatrix)
+    function tempimg=mirror(imgMatrix)
+        [Y X]=size(imgMatrix);%get the original size of Y*X matrix
+        tempimg=zeros(Y+2,X+2);
+        tempimg(1,1)=imgMatrix(2,2);
+        tempimg(1,X+2)=imgMatrix(2,X-1);
+        tempimg(Y+2,1)=imgMatrix(Y-1,2);
+        tempimg(Y+2,X+2)=imgMatrix(Y-1,X-1);
+        tempimg(1,2:X+1)=imgMatrix(2,1:X);
+        tempimg(2:Y+1,1)=imgMatrix(1:Y,2);
+        tempimg(Y+2,2:X+1)=imgMatrix(Y-1,1:X);
+        tempimg(2:Y+1,X+2)=imgMatrix(1:Y,X-1);
+        tempimg(2:Y+1,2:X+1)=imgMatrix(1:Y,1:X);
+    end
+
+end%function
+
+
+% EE569 Homework Assignment #1
+% Date: September 20, 2015
+% Name: Hengyue Liu
+% ID: 4107-2966-75
+% email: hengyuel@usc.edu
+function filteredImg=bilateralFilter(imgMatrix,windowSize)
+%bilateralFilter- read a grey scale image matrix, and do the N-point bilateral
+%filter to the image. N = windowSize.
+% Usage:	 filteredImg=bilateralFilter(imgMatrix,windowSize)
+%Define a function mirror() to add extra 2 rows and columns (for grey scale image), to add 4
+%ones, just run the function 2 times.
+% Usage:	 temimg=mirror(imgmatrix)
+    function tempimg=mirror(imgMatrix)
+        [Y X]=size(imgMatrix);%get the original size of Y*X matrix
+        tempimg=zeros(Y+2,X+2);
+        tempimg(1,1)=imgMatrix(2,2);
+        tempimg(1,X+2)=imgMatrix(2,X-1);
+        tempimg(Y+2,1)=imgMatrix(Y-1,2);
+        tempimg(Y+2,X+2)=imgMatrix(Y-1,X-1);
+        tempimg(1,2:X+1)=imgMatrix(2,1:X);
+        tempimg(2:Y+1,1)=imgMatrix(1:Y,2);
+        tempimg(Y+2,2:X+1)=imgMatrix(Y-1,1:X);
+        tempimg(2:Y+1,X+2)=imgMatrix(1:Y,X-1);
+        tempimg(2:Y+1,2:X+1)=imgMatrix(1:Y,1:X);
+    end
+%Get image size
+[width,length]=size(imgMatrix);
+%Construct the output matrix
+filteredImg=zeros(width,length);
+%Construct a temporary enlarged matrix for boundary problem.
+tempImg=imgMatrix;
+%Window size is incremented by 4 points each time.
+addedRow=mod(windowSize,4);
+for mirrorTime=1:addedRow
+    tempImg=mirror(tempImg);
+end
+%Bilateral Filter window coefficients
+filterCoeff=zeros(width,length);
+
+for row=1:width
+    for col=1:length
+        neighbors=zeros(2,windowSize);
+        for i=-addedRow:addedRow
+            for j=-addedRow:addedRow
+                for neighbor=1:windowSize
+                    neighbors(1,neighbor)=sqrt(i^2+j^2);
+                    neighbors(2,neighbor)=(tempImg(row+addedRow,col+addedRow)-tempImg(row+addedRow+i,col+addedRow+j));
+                end
+            end
+        end
+        %calculate variances
+        varDistance=var(neighbors(1,:));
+        varIntensity=var(neighbors(2,:));
+        for i=-addedRow:addedRow
+            for j=-addedRow:addedRow
+                %Get weight values for each pixel
+                filterCoeff(row,col)=exp(-(i^2+j^2)/(2*varDistance))*exp(-(tempImg(row+addedRow,col+addedRow)-tempImg(row+addedRow+i,col+addedRow+j))^2/(2*varIntensity));
+            end
+        end
+        filterCoeff(row,col)=filterCoeff(row,col)/(windowSize-1);
+    end
+end
+
+for mirrorTime=1:addedRow
+    filterCoeff=mirror(filterCoeff);
+end
+%local summation mean
+for row=1:width
+    for col=1:length
+        for i=-addedRow:addedRow
+            for j=-addedRow:addedRow
+                %Get filtered value of each pixel
+                filteredImg(row,col)=filterCoeff(row+addedRow+i,col+addedRow+j)*tempImg(row+addedRow+i,col+addedRow+j);
+            end
+        end
+    end
+end
+
+end%function
+
+
