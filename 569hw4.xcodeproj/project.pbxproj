@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		56EF47571BF5F4F300714103 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EF47561BF5F4F300714103 /* main.cpp */; };
+		56EAB40D1BF9CFB600E9A4BC /* EE569_HW3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EAB40B1BF9CFB600E9A4BC /* EE569_HW3.cpp */; };
+		56EF47571BF5F4F300714103 /* 569hw4_p1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EF47561BF5F4F300714103 /* 569hw4_p1.cpp */; };
 		56EF497E1BF5FD6F00714103 /* raw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56EF497C1BF5FD6F00714103 /* raw.cpp */; };
 		56EF49921BF5FD8000714103 /* libopencv_calib3d.2.4.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56EF49801BF5FD8000714103 /* libopencv_calib3d.2.4.11.dylib */; };
 		56EF49931BF5FD8000714103 /* libopencv_contrib.2.4.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56EF49811BF5FD8000714103 /* libopencv_contrib.2.4.11.dylib */; };
@@ -27,6 +28,7 @@
 		56EF49A11BF5FD8000714103 /* libopencv_superres.2.4.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56EF498F1BF5FD8000714103 /* libopencv_superres.2.4.11.dylib */; };
 		56EF49A21BF5FD8000714103 /* libopencv_video.2.4.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56EF49901BF5FD8000714103 /* libopencv_video.2.4.11.dylib */; };
 		56EF49A31BF5FD8000714103 /* libopencv_videostab.2.4.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 56EF49911BF5FD8000714103 /* libopencv_videostab.2.4.11.dylib */; };
+		56F6DC6C1C0576E500965929 /* 569hw4_p3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 56F6DC6B1C0576E500965929 /* 569hw4_p3.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,8 +44,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		56EAB40B1BF9CFB600E9A4BC /* EE569_HW3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EE569_HW3.cpp; path = ../../569_HW3/569_HW3/EE569_HW3.cpp; sourceTree = "<group>"; };
+		56EAB40C1BF9CFB600E9A4BC /* EE569_HW3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EE569_HW3.h; path = ../../569_HW3/569_HW3/EE569_HW3.h; sourceTree = "<group>"; };
 		56EF47531BF5F4F300714103 /* 569hw4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = 569hw4; sourceTree = BUILT_PRODUCTS_DIR; };
-		56EF47561BF5F4F300714103 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		56EF47561BF5F4F300714103 /* 569hw4_p1.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = 569hw4_p1.cpp; sourceTree = "<group>"; };
 		56EF497C1BF5FD6F00714103 /* raw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = raw.cpp; path = "../../../Google Drive/EE569/hw2/569HW2/569HW2/raw.cpp"; sourceTree = "<group>"; };
 		56EF497D1BF5FD6F00714103 /* raw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = raw.h; path = "../../../Google Drive/EE569/hw2/569HW2/569HW2/raw.h"; sourceTree = "<group>"; };
 		56EF49801BF5FD8000714103 /* libopencv_calib3d.2.4.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libopencv_calib3d.2.4.11.dylib; sourceTree = "<group>"; };
@@ -65,6 +69,7 @@
 		56EF49901BF5FD8000714103 /* libopencv_video.2.4.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libopencv_video.2.4.11.dylib; sourceTree = "<group>"; };
 		56EF49911BF5FD8000714103 /* libopencv_videostab.2.4.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libopencv_videostab.2.4.11.dylib; sourceTree = "<group>"; };
 		56EF49A41BF5FD9200714103 /* 569hw4.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = 569hw4.h; sourceTree = "<group>"; };
+		56F6DC6B1C0576E500965929 /* 569hw4_p3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = 569hw4_p3.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +104,8 @@
 		56EF474A1BF5F4F300714103 = {
 			isa = PBXGroup;
 			children = (
+				56EAB40B1BF9CFB600E9A4BC /* EE569_HW3.cpp */,
+				56EAB40C1BF9CFB600E9A4BC /* EE569_HW3.h */,
 				56EF497F1BF5FD8000714103 /* libopencv 2.4.11 */,
 				56EF497C1BF5FD6F00714103 /* raw.cpp */,
 				56EF497D1BF5FD6F00714103 /* raw.h */,
@@ -118,7 +125,8 @@
 		56EF47551BF5F4F300714103 /* 569hw4 */ = {
 			isa = PBXGroup;
 			children = (
-				56EF47561BF5F4F300714103 /* main.cpp */,
+				56EF47561BF5F4F300714103 /* 569hw4_p1.cpp */,
+				56F6DC6B1C0576E500965929 /* 569hw4_p3.cpp */,
 				56EF49A41BF5FD9200714103 /* 569hw4.h */,
 			);
 			path = 569hw4;
@@ -207,7 +215,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				56EF497E1BF5FD6F00714103 /* raw.cpp in Sources */,
-				56EF47571BF5F4F300714103 /* main.cpp in Sources */,
+				56EF47571BF5F4F300714103 /* 569hw4_p1.cpp in Sources */,
+				56F6DC6C1C0576E500965929 /* 569hw4_p3.cpp in Sources */,
+				56EAB40D1BF9CFB600E9A4BC /* EE569_HW3.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
