@@ -14,6 +14,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv/cvaux.h>
 #include <opencv/cxcore.h>
+#include <opencv2/nonfree/nonfree.hpp>
 using namespace std;
 using namespace cv;
 
@@ -70,4 +71,17 @@ void WriteRaw(const char *path, unsigned char* imagePtr, const int width,const i
  *************************************************************************/
 
 void ShowImg(const char* name,imageData data);
+
+/*************************************************************************
+ * Raw2Mat()
+ * Function: This function reads in image data from a RAW image file.
+ *           Then construct image matrix based on the pointer got from
+ *           ReadRaw().
+ * Input: file path of the image, size of the image.
+ * Output: Image matrix Mat().
+ *************************************************************************/
+
+Mat Raw2Mat(const char* filePath,const int width,const int length,const int bytesPerPixel);
+
+Mat ImageData2Mat(imageData img);
 #endif /* raw_h */

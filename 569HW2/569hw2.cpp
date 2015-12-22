@@ -24,51 +24,6 @@
 using namespace std;
 using namespace cv;
 #endif
-/*
- * ReadRaw()
- * Function: This function reads in image data from a RAW image file.
- * Input: file path of the image, size of the image.
- * Output: the pointer of the image array.
- */
-unsigned char* ReadRaw(const char *filename, const int width,const int length,const int bytesPerPixel){
-    // Allocate image data array using new() for transmiting array pointer
-    unsigned char *imagedata;
-    imagedata=new unsigned char[width*length*bytesPerPixel];
-    FILE *file;
-    // Open file
-    if (!(file=fopen(filename,"rb"))) {
-        cout << "Cannot open file: " << filename <<endl;
-        exit(1);
-    }
-    fread(imagedata, sizeof(unsigned char), width*length*bytesPerPixel, file);
-    fclose(file);
-    //delete Imagedata; may use later
-    return imagedata;//return the address of the first pixel
-}
-
-/*
- * WriteRaw()
- * Function: This function write image data from a in a RAW file.
- * Input: file path one wants to create, image data array pointer, size of the image.
- */
-void WriteRaw(const char *path, unsigned char* imagePtr, const int width,const int length,  const int bytesPerPixel){
-    FILE *file;
-    //const char* path="/Users/liuhengyue/Google Drive/EE569/hw2/569HW2/569HW2/straw_01ba.raw";
-    if (!(file=fopen(path,"wb"))) {
-        cout << "Cannot open file: " << path << endl;
-        exit(1);
-    }
-    unsigned char outImage[length][width][bytesPerPixel];
-    int i=0,j=0,dim=0;
-    for(dim=0;dim<bytesPerPixel;dim++){
-        for(i=0;i<length;i++){//array row number
-            for(j=0;j<width;j++){//coloumn number
-                outImage[i][j][dim]=imagePtr[j+i*width+dim*width*length];            }
-        }
-    }
-    fwrite(outImage, sizeof(unsigned char), width*length*bytesPerPixel, file);
-    fclose(file);
-}
     //Other functions wirtten here
     /*
      *Mean calculation and extraction
