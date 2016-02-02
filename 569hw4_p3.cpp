@@ -4,7 +4,7 @@
 //  SIFT SURF K-MEANS BAG OF WORDS
 //  Created by LiuHengyue on 11/24/15.
 //  Copyright © 2015 LiuHengyue. All rights reserved.
-//
+////
 
 #include "569hw4.h"
 #define K_MEANS 8
